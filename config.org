@@ -1,0 +1,265 @@
+#+TITLE: Work Setup
+#+AUTHOR: Gary Lomberg
+#+STARTUP: overview
+
+* ToC :toc:
+- [[#general][general]]
+- [[#package-management][package management]]
+  - [[#elpaca][elpaca]]
+- [[#packages][packages]]
+- [[#themes][themes]]
+- [[#custom-functions][custom functions]]
+
+* general
+#+begin_src emacs-lisp
+  ;; general
+  (define-key global-map "\C-x\C-u" 'undo)
+  (add-hook 'comint-output-filter-functions 'comint-watch-for-password-prompt)
+  (setq inhibit-startup-message t)
+  (setq visible-bell t)
+  (tool-bar-mode -1)
+  (scroll-bar-mode -1)
+  (global-display-line-numbers-mode 1)
+  (blink-cursor-mode -1)
+  (setq blink-cursor-blinks 3)
+  (setq blink-cursor-interval 0.6)
+  (set-face-attribute 'default nil :height 120)
+  (hl-line-mode 1)
+  (recentf-mode 1)
+  (savehist-mode 1)
+  (setq history-length 25)
+  (save-place-mode 1)
+  (setq custom-file (locate-user-emacs-file "custom-vars.el"))
+  (load custom-file 'noerror 'nomessage)
+  (global-auto-revert-mode 1)
+  (setq global-auto-revert-non-file-buffers t)
+  (set-fringe-mode 5)
+  (menu-bar-mode -1)
+  (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+  ;; calendar
+  (setq calendar-week-start-day 1)
+  (calendar)
+
+  ;; documents
+  (setq doc-view-resolution 300)
+  (setq doc-view-continuous t)
+
+  ;; diary
+  (setq european-calendar-style 't)
+  (diary)
+
+  ;; text
+  (setq-default tab-width 4)
+  (setq-default indent-tab-mode nil)
+
+  ;; coding
+  (global-font-lock-mode t)  
+#+end_src
+
+* package management
+
+#+begin_src emacs-lisp
+(require 'package)
+(setq package-archives '(("melpa" . "https://melpa.org/packages/")
+						 ("org" . "https://orgmode.org/elpa/")
+						 ("elpa" . "https://elpa.gnu.org/packages/")))
+
+(package-initialize)
+(unless package-archive-contents
+  (package-refresh-contents))
+
+(unless (package-installed-p 'use-package)
+  (package-install 'use-package))
+
+(require 'use-package)
+(setq use-package-always-ensure t)  
+#+end_src
+
+** elpaca 
+#+begin_src emacs-lisp
+  ;; (defvar elpaca-installer-version 0.6)
+  ;; (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
+  ;; (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
+  ;; (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
+  ;; (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
+  ;;                               :ref nil
+  ;;                               :files (:defaults "elpaca-test.el" (:exclude "extensions"))
+  ;;                               :build (:not elpaca--activate-package)))
+  ;; (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
+  ;;        (build (expand-file-name "elpaca/" elpaca-builds-directory))
+  ;;        (order (cdr elpaca-order))
+  ;;        (default-directory repo))
+  ;;   (add-to-list 'load-path (if (file-exists-p build) build repo))
+  ;;   (unless (file-exists-p repo)
+  ;;     (make-directory repo t)
+  ;;     (when (< emacs-major-version 28) (require 'subr-x))
+  ;;     (condition-case-unless-debug err
+  ;;         (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+  ;;                  ((zerop (call-process "git" nil buffer t "clone"
+  ;;                                        (plist-get order :repo) repo)))
+  ;;                  ((zerop (call-process "git" nil buffer t "checkout"
+  ;;                                        (or (plist-get order :ref) "--"))))
+  ;;                  (emacs (concat invocation-directory invocation-name))
+  ;;                  ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+  ;;                                        "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+  ;;                  ((require 'elpaca))
+  ;;                  ((elpaca-generate-autoloads "elpaca" repo)))
+  ;;             (progn (message "%s" (buffer-string)) (kill-buffer buffer))
+  ;;           (error "%s" (with-current-buffer buffer (buffer-string))))
+  ;;       ((error) (warn "%s" err) (delete-directory repo 'recursive))))
+  ;;   (unless (require 'elpaca-autoloads nil t)
+  ;;     (require 'elpaca)
+  ;;     (elpaca-generate-autoloads "elpaca" repo)
+  ;;     (load "./elpaca-autoloads")))
+  ;; (add-hook 'after-init-hook #'elpaca-process-queues)
+  ;; (elpaca `(,@elpaca-order))  
+  ;; (setq package-enable-at-startup nil)
+#+end_src
+
+* packages
+#+begin_src emacs-lisp
+  (use-package all-the-icons
+    :ensure t
+    :if (display-graphic-p))
+
+  (use-package nerd-icons
+    :ensure t)
+
+    (use-package counsel
+      :after ivy
+      :bind  (("M-x" . counsel-M-x)
+              ("C-x b" . counsel-ibuffer)
+              ("C-x C-f" . counsel-find-file)
+              :map minibuffer-local-map
+              ("C-r" . 'counsel-minibuffer-history))
+      :config
+      (setq ivy-initial-inputs-alist nil))
+
+    (use-package ivy
+      ; :diminish
+      :bind (("C-s" . swiper)
+             :map ivy-minibuffer-map
+             ("TAB" . ivy-alt-done)
+             ("C-l" . ivy-alt-done)
+             ("C-j" . ivy-next-line)		 
+             ("C-k" . ivy-previoys-line)
+             :map ivy-switch-buffer-map		 
+             ("C-k" . ivy-previous-line)
+             ("C-l" . ivy-done)
+             ("C-d" . ivy-switch-buffer-kill)
+             :map ivy-reverse-i-search-map
+             ("C-k" . ivy-previous-line)
+             ("C-d" . ivy-reverse-i-search-kill))
+      :custom
+      (setq ivy-count-format "(%d/%d) ")
+      :config
+      (ivy-mode 1))
+
+    (use-package ivy-rich
+      :after ivy
+      :ensure t
+      :init (ivy-rich-mode 1)
+      :custom
+      (ivy-virtual-abbreciate 'full
+       ivy-rich-switch-buffer-align-virtual-buffer t
+       ivy-rich-path-style 'abbrev)
+      :config
+      (ivy-set-display-transformer 'ivy-switch-buffer
+                                   'ivy-rich-switch-buffer-transformer))
+
+    (use-package doom-modeline
+      :ensure t
+      :init (doom-modeline-mode 1)
+      :custom ((doom-modeline-height 15)))
+
+    (use-package toc-org
+        :commands toc-org-enable
+        :init (add-hook 'org-mode-hook 'toc-org-enable))
+
+
+  (add-hook 'org-mode-hook 'org-indent-mode)
+  (use-package org-bullets)
+  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+
+  (require 'org-tempo) ; <s TAB to start new source block
+
+  (use-package sudo-edit)
+
+  (use-package eshell-syntax-highlighting
+    :after esh-mode
+    :config
+    (eshell-syntax-highlighting-global-mode +1))
+
+  (use-package vterm
+    :config
+    (setq vterm-max-scrollback 5000))
+
+  (use-package rainbow-mode
+    :hook org-mode prog-mode)
+
+  ;; (use-package dashboard
+  ;;   :ensure t
+  ;;   :init
+  ;;   (setq initial-buffer-choice 'dashboard-open)
+  ;;   (setq dashboard-set-heading-icons t)
+  ;;   (setq dashboard-banner-logo-title "Welcome")
+  ;;   (setq dashboard-startup-banner 'logo) ;; can use string pointing to logo file
+  ;;   (setq dashboard-center-content nil)
+  ;;   (setq dashboard-items '((recents .5)
+  ;;                           (agenda . 5)
+  ;;                           (bookmarks . 3)
+  ;;                           (projects . 3)
+  ;;                           (registers . 3)))
+  ;;   (dashboard-modify-heading-icons '((recents . "file-text")
+  ;;                                     (bookmarks . "book")))
+  ;;   :config
+  ;;   (dashboard-setup-startup-hook))
+#+end_src
+
+* themes
+#+begin_src emacs-lisp
+  ;; (require 'modus-themes)
+  ;; (load-theme 'modus-operandi t)
+  ;; (setq modus-theme-mode-line '(borderless))
+  ;; (setq modus-themes-region '(bg-only))
+  ;; (load-theme 'modus-vivendi t)
+  (load-theme 'deeper-blue t)  
+#+end_src
+
+* custom functions
+#+begin_src emacs-lisp
+  ;; custom functions
+  (defun count-words-buffer ()
+	"Count the number of words in the current buffer;
+  print a message in the minibuffer with the result."
+	(interactive)
+	(let ((count 0))
+	  (save-excursion
+		(goto-char (point-min))
+		(while (< (point) (point-max))
+		  (forward-word 1)
+		  (setq count (1+ count)))
+		(message "buffer conatains %d words." count))))
+
+  (defun goto-percent (percent)
+	(interactive "nGoto percent: ")
+	(let* ((size (point-max))
+		   (charpos (/ (* size percent) 100)))
+	  (goto-char charpos)))
+
+  (defun pluralize (word count &optional plural)
+	(if (= count 1)
+		word
+	  (if (null plural)
+		  (concat word "s")
+		plural)))
+
+  (defun how-many (count)
+	(cond ((zerop count) "no")
+		  ((= count 1) "one")
+		  ((= count 2) "two")
+		  (t "many")))
+
+  (defun report-change-count (count)
+	(message "Made %s %s" (how-many count) (pluralize "change" count)))  
+#+end_src
