@@ -13,6 +13,8 @@
 * general
 #+begin_src emacs-lisp
   ;; general
+  (setq initial-buffer-choice nil)
+  (setq inhibit-startup-screen t)
   (define-key global-map "\C-x\C-u" 'undo)
   (add-hook 'comint-output-filter-functions 'comint-watch-for-password-prompt)
   (setq inhibit-startup-message t)
@@ -51,6 +53,8 @@
   ;; text
   (setq-default tab-width 4)
   (setq-default indent-tab-mode nil)
+  (add-hook 'org-mode-hook (lambda () (electric-indent-local-mode -1)))
+
 
   ;; coding
   (global-font-lock-mode t)  
@@ -59,20 +63,20 @@
 * package management
 
 #+begin_src emacs-lisp
-(require 'package)
-(setq package-archives '(("melpa" . "https://melpa.org/packages/")
-						 ("org" . "https://orgmode.org/elpa/")
-						 ("elpa" . "https://elpa.gnu.org/packages/")))
+  (require 'package)
+  (setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                           ("org" . "https://orgmode.org/elpa/")
+                           ("elpa" . "https://elpa.gnu.org/packages/")))
 
-(package-initialize)
-(unless package-archive-contents
-  (package-refresh-contents))
+  (package-initialize)
+  (unless package-archive-contents
+    (package-refresh-contents))
 
-(unless (package-installed-p 'use-package)
-  (package-install 'use-package))
+  (unless (package-installed-p 'use-package)
+    (package-install 'use-package))
 
-(require 'use-package)
-(setq use-package-always-ensure t)  
+  (require 'use-package)
+  (setq use-package-always-ensure t)  
 #+end_src
 
 ** elpaca 
@@ -125,56 +129,55 @@
   (use-package nerd-icons
     :ensure t)
 
-    (use-package counsel
-      :after ivy
-      :bind  (("M-x" . counsel-M-x)
-              ("C-x b" . counsel-ibuffer)
-              ("C-x C-f" . counsel-find-file)
-              :map minibuffer-local-map
-              ("C-r" . 'counsel-minibuffer-history))
-      :config
-      (setq ivy-initial-inputs-alist nil))
+  (use-package counsel
+    :after ivy
+    :bind  (("M-x" . counsel-M-x)
+            ("C-x b" . counsel-ibuffer)
+            ("C-x C-f" . counsel-find-file)
+            :map minibuffer-local-map
+            ("C-r" . 'counsel-minibuffer-history))
+    :config
+    (setq ivy-initial-inputs-alist nil))
 
-    (use-package ivy
-      ; :diminish
-      :bind (("C-s" . swiper)
-             :map ivy-minibuffer-map
-             ("TAB" . ivy-alt-done)
-             ("C-l" . ivy-alt-done)
-             ("C-j" . ivy-next-line)		 
-             ("C-k" . ivy-previoys-line)
-             :map ivy-switch-buffer-map		 
-             ("C-k" . ivy-previous-line)
-             ("C-l" . ivy-done)
-             ("C-d" . ivy-switch-buffer-kill)
-             :map ivy-reverse-i-search-map
-             ("C-k" . ivy-previous-line)
-             ("C-d" . ivy-reverse-i-search-kill))
-      :custom
-      (setq ivy-count-format "(%d/%d) ")
-      :config
-      (ivy-mode 1))
+  (use-package ivy
+    :bind (("C-s" . swiper)
+           :map ivy-minibuffer-map
+           ("TAB" . ivy-alt-done)
+           ("C-l" . ivy-alt-done)
+           ("C-j" . ivy-next-line)		 
+           ("C-k" . ivy-previoys-line)
+           :map ivy-switch-buffer-map		 
+           ("C-k" . ivy-previous-line)
+           ("C-l" . ivy-done)
+           ("C-d" . ivy-switch-buffer-kill)
+           :map ivy-reverse-i-search-map
+           ("C-k" . ivy-previous-line)
+           ("C-d" . ivy-reverse-i-search-kill))
+    :custom
+    (setq ivy-count-format "(%d/%d) ")
+    :config
+    (ivy-mode 1))
 
-    (use-package ivy-rich
-      :after ivy
-      :ensure t
-      :init (ivy-rich-mode 1)
-      :custom
-      (ivy-virtual-abbreciate 'full
-       ivy-rich-switch-buffer-align-virtual-buffer t
-       ivy-rich-path-style 'abbrev)
-      :config
-      (ivy-set-display-transformer 'ivy-switch-buffer
-                                   'ivy-rich-switch-buffer-transformer))
+  ;; (use-package ivy-rich
+  ;;   :after ivy
+  ;;   :ensure t
+  ;;   :init (ivy-rich-mode -1)
+  ;;   :custom
+  ;;   (ivy-virtual-abbreciate 'full
+  ;;                           ivy-rich-switch-buffer-align-virtual-buffer t
+  ;;                           ivy-rich-path-style 'abbrev)
+  ;;   :config
+  ;;   (ivy-set-display-transformer 'ivy-switch-buffer
+  ;;                                'ivy-rich-switch-buffer-transformer))
 
-    (use-package doom-modeline
-      :ensure t
-      :init (doom-modeline-mode 1)
-      :custom ((doom-modeline-height 15)))
+  (use-package doom-modeline
+    :ensure t
+    :init (doom-modeline-mode 1)
+    :custom ((doom-modeline-height 15)))
 
-    (use-package toc-org
-        :commands toc-org-enable
-        :init (add-hook 'org-mode-hook 'toc-org-enable))
+  (use-package toc-org
+    :commands toc-org-enable
+    :init (add-hook 'org-mode-hook 'toc-org-enable))
 
 
   (add-hook 'org-mode-hook 'org-indent-mode)
@@ -196,24 +199,26 @@
 
   (use-package rainbow-mode
     :hook org-mode prog-mode)
+  (use-package projectile
+    :config
+    (projectile-mode 1))
 
-  ;; (use-package dashboard
-  ;;   :ensure t
-  ;;   :init
-  ;;   (setq initial-buffer-choice 'dashboard-open)
-  ;;   (setq dashboard-set-heading-icons t)
-  ;;   (setq dashboard-banner-logo-title "Welcome")
-  ;;   (setq dashboard-startup-banner 'logo) ;; can use string pointing to logo file
-  ;;   (setq dashboard-center-content nil)
-  ;;   (setq dashboard-items '((recents .5)
-  ;;                           (agenda . 5)
-  ;;                           (bookmarks . 3)
-  ;;                           (projects . 3)
-  ;;                           (registers . 3)))
-  ;;   (dashboard-modify-heading-icons '((recents . "file-text")
-  ;;                                     (bookmarks . "book")))
-  ;;   :config
-  ;;   (dashboard-setup-startup-hook))
+  (use-package dashboard
+    :ensure t
+    :init
+    (setq initial-buffer-choice 'dashboard-open)
+    (setq dashboard-set-heading-icons t)
+    (setq dashboard-banner-logo-title "Welcome")
+    (setq dashboard-startup-banner 'logo) ;; can use string pointing to logo file
+    (setq dashboard-center-content t)
+    (setq dashboard-items '((recents . 5)
+                            (agenda . 5)
+                            (bookmarks . 3)
+                            (projects . 3)
+                            (registers . 3)))
+    ;; (dashboard-modify-heading-icons '((bookmarks . "book"))) ; (recents . "file-text")
+    :config
+    (dashboard-setup-startup-hook))
 #+end_src
 
 * themes
