@@ -13,8 +13,6 @@
 * general
 #+begin_src emacs-lisp
   ;; general
-  (setq initial-buffer-choice nil)
-  (setq inhibit-startup-screen t)
   (define-key global-map "\C-x\C-u" 'undo)
   (add-hook 'comint-output-filter-functions 'comint-watch-for-password-prompt)
   (setq inhibit-startup-message t)
@@ -53,11 +51,13 @@
   ;; text
   (setq-default tab-width 4)
   (setq-default indent-tab-mode nil)
-  (add-hook 'org-mode-hook (lambda () (electric-indent-local-mode -1)))
-
+  ;; (add-hook 'org-mode-hook (lambda () (electric-indent-local-mode -1)))
 
   ;; coding
   (global-font-lock-mode t)  
+
+  ;; transparency
+  (add-to-list 'default-frame-alist '(alpha-background . 50))
 #+end_src
 
 * package management
@@ -122,6 +122,8 @@
 
 * packages
 #+begin_src emacs-lisp
+  (use-package diminish)
+
   (use-package all-the-icons
     :ensure t
     :if (display-graphic-p))
@@ -140,7 +142,8 @@
     (setq ivy-initial-inputs-alist nil))
 
   (use-package ivy
-    :bind (("C-s" . swiper)
+    :init (ivy-mode 1)
+    :bind (;;("C-s" . swiper)
            :map ivy-minibuffer-map
            ("TAB" . ivy-alt-done)
            ("C-l" . ivy-alt-done)
@@ -154,21 +157,19 @@
            ("C-k" . ivy-previous-line)
            ("C-d" . ivy-reverse-i-search-kill))
     :custom
-    (setq ivy-count-format "(%d/%d) ")
-    :config
-    (ivy-mode 1))
+    (setq ivy-count-format "(%d/%d) "))
 
-  ;; (use-package ivy-rich
-  ;;   :after ivy
-  ;;   :ensure t
-  ;;   :init (ivy-rich-mode -1)
-  ;;   :custom
-  ;;   (ivy-virtual-abbreciate 'full
-  ;;                           ivy-rich-switch-buffer-align-virtual-buffer t
-  ;;                           ivy-rich-path-style 'abbrev)
-  ;;   :config
-  ;;   (ivy-set-display-transformer 'ivy-switch-buffer
-  ;;                                'ivy-rich-switch-buffer-transformer))
+  (use-package ivy-rich
+    :after ivy
+    :ensure t
+    :init (ivy-rich-mode 1)
+    :custom
+    (ivy-virtual-abbreciate 'full
+                            ivy-rich-switch-buffer-align-virtual-buffer t
+                            ivy-rich-path-style 'abbrev)
+    :config
+    (ivy-set-display-transformer 'ivy-switch-buffer
+                                 'ivy-rich-switch-buffer-transformer))
 
   (use-package doom-modeline
     :ensure t
@@ -219,6 +220,31 @@
     ;; (dashboard-modify-heading-icons '((bookmarks . "book"))) ; (recents . "file-text")
     :config
     (dashboard-setup-startup-hook))
+
+  (use-package flycheck
+    :ensure t
+    :defer t
+    :diminish
+    :init (global-flycheck-mode))
+
+  (use-package company
+    :defer 2
+    :diminish
+    :custom
+    (company-begin-commands '(self-insert-command))
+    (command-idle-delay .1)
+    (company-minimum-prefix-length 2)
+    (company-show-numbers t)
+    (company-tooltips-align-annotations 't)
+    (global-company-mode t))
+
+  (use-package company-box
+    :after company
+    :diminish
+    :hook (company-mode . company-box-mode))
+
+  (use-package peep-dired
+    :after dired)
 #+end_src
 
 * themes
