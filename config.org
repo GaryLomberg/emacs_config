@@ -263,6 +263,7 @@
   (use-package git-timemachine)
 
   (use-package magit)
+  ;; use ? to get help commands
 
   (use-package rainbow-delimiters
     :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
