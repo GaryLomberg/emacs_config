@@ -20,6 +20,15 @@
   (tool-bar-mode -1)
   (scroll-bar-mode -1)
   (global-display-line-numbers-mode 1)
+  (column-number-mode 1)
+
+  (dolist (mode '(org-mode-hook
+                term-mode-hook
+                shell-mode-hook
+                treemacs-mode-hook
+                eshell-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
   (blink-cursor-mode -1)
   (setq blink-cursor-blinks 3)
   (setq blink-cursor-interval 0.6)
@@ -38,7 +47,6 @@
   (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
   ;; calendar
   (setq calendar-week-start-day 1)
-  (calendar)
 
   ;; documents
   (setq doc-view-resolution 300)
@@ -46,13 +54,12 @@
 
   ;; diary
   (setq european-calendar-style 't)
-  (diary)
 
   ;; text
   (setq-default tab-width 4)
   (setq-default indent-tab-mode nil)
   ;; (add-hook 'org-mode-hook (lambda () (electric-indent-local-mode -1)))
-
+  (electric-pair-mode 1)
   ;; coding
   (global-font-lock-mode t)  
 
@@ -141,6 +148,8 @@
     :config
     (setq ivy-initial-inputs-alist nil))
 
+  ;; use M-o to get further options whilst in mini buffer
+
   (use-package ivy
     :init (ivy-mode 1)
     :bind (;;("C-s" . swiper)
@@ -201,8 +210,9 @@
   (use-package rainbow-mode
     :hook org-mode prog-mode)
   (use-package projectile
-    :config
-    (projectile-mode 1))
+    :config (projectile-mode 1)
+    :custom (projectile-completion-system 'ivy)
+    :bind-keymap ("C-c p" . projectile-command-map))
 
   (use-package dashboard
     :ensure t
@@ -245,16 +255,62 @@
 
   (use-package peep-dired
     :after dired)
+
+  (use-package which-key
+    :init (which-key-mode)
+    :config (setq which-key-idle-delay 0.1))
+
+  (use-package git-timemachine)
+
+  (use-package magit)
+
+  (use-package rainbow-delimiters
+    :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
+           (org-mode . rainbow-delimiters-mode)
+           (prog-mode . rainbow-delimiters-mode)
+           (clojure-mode . rainbow-delimiters-mode)))
+
+  (use-package tldr)
+
+  (use-package helpful
+    :commands (helpful-callable helpful-variable helpful-command helpful-key)
+    :custom
+    (counsel-describe-function-function #'helpful-callable)
+    (counsel-describe-variable-function #'helpful-variable)
+    :bind
+    ([remap describe-function] . counsel-describe-function)
+    ([remap describe-command] . helpful-command)
+    ([remap describe-variable] . counsel-describe-variable)
+    ([remap describe-key] . helpful-key))
+
+  (use-package general)
+  ;; research general for creating a place to set namespaced custom key bindings
+  ;; using prefixes e.g. "C-SPACE"
+  ;; also investigate hydra package
+
 #+end_src
 
 * themes
 #+begin_src emacs-lisp
-  ;; (require 'modus-themes)
-  ;; (load-theme 'modus-operandi t)
-  ;; (setq modus-theme-mode-line '(borderless))
-  ;; (setq modus-themes-region '(bg-only))
-  ;; (load-theme 'modus-vivendi t)
-  (load-theme 'deeper-blue t)  
+    ;; (require 'modus-themes)
+    ;; (load-theme 'modus-operandi t)
+    ;; (setq modus-theme-mode-line '(borderless))
+    ;; (setq modus-themes-region '(bg-only))
+    ;; (load-theme 'modus-vivendi t)
+    ;; (load-theme 'deeper-blue t)
+
+    ;; (use-package timu-spacegrey-theme
+    ;; :ensure t
+    ;; :config
+    ;; (load-theme 'timu-spacegrey t))
+
+  (use-package ample-theme
+    :init (progn (load-theme 'ample t t)
+                 (load-theme 'ample-flat t t)
+                 (load-theme 'ample-light t t)
+                 (enable-theme 'ample))
+    :defer t
+    :ensure t)  
 #+end_src
 
 * custom functions
