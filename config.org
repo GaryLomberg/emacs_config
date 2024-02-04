@@ -9,6 +9,8 @@
 - [[#packages][packages]]
 - [[#themes][themes]]
 - [[#custom-functions][custom functions]]
+- [[#org-babel][org babel]]
+- [[#org-shortcuts][org shortcuts]]
 
 * general
 #+begin_src emacs-lisp
@@ -65,6 +67,46 @@
 
   ;; transparency
   (add-to-list 'default-frame-alist '(alpha-background . 50))
+
+  ;; org agenda
+  (setq org-agenda-files '("~/Documents/emacs/org_mode.org"))
+  (setq org-agenda-start-with-log-mode t)
+  (setq org-log-done 'time)
+  (setq org-log-into-drawer t)
+  (setq org-todo-keywords
+        '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
+          (sequence "BACKLOG(b)" "IN PROGRESS(p)")))
+  ;; anything before "|" are todo states and any after are active
+
+  ;; research and apply org-agenda-custom-commands
+
+  ;; (setq org-capture-templates
+  ;;   `(("t" "Tasks / Projects")
+  ;;     ("tt" "Task" entry (file+olp "~/Projects/Code/emacs-from-scratch/OrgFiles/Tasks.org" "Inbox")
+  ;;          "* TODO %?\n  %U\n  %a\n  %i" :empty-lines 1)
+
+  ;;     ("j" "Journal Entries")
+  ;;     ("jj" "Journal" entry
+  ;;          (file+olp+datetree "~/Projects/Code/emacs-from-scratch/OrgFiles/Journal.org")
+  ;;          "\n* %<%I:%M %p> - Journal :journal:\n\n%?\n\n"
+  ;;          ;; ,(dw/read-file-as-string "~/Notes/Templates/Daily.org")
+  ;;          :clock-in :clock-resume
+  ;;          :empty-lines 1)
+  ;;     ("jm" "Meeting" entry
+  ;;          (file+olp+datetree "~/Projects/Code/emacs-from-scratch/OrgFiles/Journal.org")
+  ;;          "* %<%I:%M %p> - %a :meetings:\n\n%?\n\n"
+  ;;          :clock-in :clock-resume
+  ;;          :empty-lines 1)
+
+  ;;     ("w" "Workflows")
+  ;;     ("we" "Checking Email" entry (file+olp+datetree "~/Projects/Code/emacs-from-scratch/OrgFiles/Journal.org")
+  ;;          "* Checking Email :email:\n\n%?" :clock-in :clock-resume :empty-lines 1)
+
+  ;;     ("m" "Metrics Capture")
+  ;;     ("mw" "Weight" table-line (file+headline "~/Projects/Code/emacs-from-scratch/OrgFiles/Metrics.org" "Weight")
+  ;;      "| %U | %^{Weight} | %^{Notes} |" :kill-buffer t)))
+
+  ;; look into org habit
 #+end_src
 
 * package management
@@ -258,7 +300,7 @@
 
   (use-package which-key
     :init (which-key-mode)
-    :config (setq which-key-idle-delay 0.1))
+    :config (setq which-key-idle-delay 0.3))
 
   (use-package git-timemachine)
 
@@ -351,3 +393,32 @@
   (defun report-change-count (count)
 	(message "Made %s %s" (how-many count) (pluralize "change" count)))  
 #+end_src
+* org babel
+#+begin_src emacs-lisp
+  (setq org-confirm-babel-evaluate nil)
+  (with-eval-after-load 'org
+    (org-babel-do-load-languages
+        'org-babel-load-languages
+        '((emacs-lisp . t)
+        (python . t)))
+
+#+end_src
+* org shortcuts
+
+shift-tab = toggle visibilities
+C-return = new item at same level
+M-arrows = move heading
+C-c C-l = insert link
+shift-arrows = cycle states
+
+#+begin_src python :session
+
+  def return_hello():
+      return "hello"
+
+  return_hello()
+
+#+end_src
+
+#+RESULTS:
+: hello
