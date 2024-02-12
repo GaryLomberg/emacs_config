@@ -78,11 +78,18 @@
   (setq org-log-done 'time)
   (setq org-log-into-drawer t)
   (setq org-todo-keywords
-        '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
-          (sequence "BACKLOG(b)" "IN PROGRESS(p)")))
+        '((sequence "TODO(t)" "IN PROGRESS(i)" "PAUSED(p)" "|" "DONE(d!)" "CANCELLED(c@)")))
+  (setq org-global-properties
+      '(("Effort_ALL" . "0:05 0:15 0:30 1:00 2:00 4:00 8:00 16:00")))
   ;; anything before "|" are todo states and any after are active
 
   ;; research and apply org-agenda-custom-commands
+
+  (setq org-capture-templates
+        `(("w" "Work")
+          ("wt" "Work TODO" entry
+          (file+olp+datetree "~/Documents/agenda/work.org")
+          "* TODO %^{TODO TITLE}\n:DETAILS:%^G\nSTARTED: %U:END:\n%i\n\n%?" :jump-to-captured t :empty-lines 1)))
 
   ;; (setq org-capture-templates
   ;;   `(("t" "Tasks / Projects")
@@ -114,7 +121,8 @@
 
   (setq delete-by-moving-to-trash t)
 
-  (setq all-the-icons-dired-monochrome nil)  
+  (setq all-the-icons-dired-monochrome nil)
+  (setq org-src-fontify-natively t)
 #+end_src
 
 * package management
@@ -179,283 +187,304 @@
 
 * packages
 #+begin_src emacs-lisp
-    (use-package diminish)
+     (use-package diminish)
 
-    (use-package all-the-icons
-      :ensure t
-      :if (display-graphic-p))
+     (use-package all-the-icons
+       :ensure t
+       :if (display-graphic-p))
 
-    (use-package nerd-icons
-      :ensure t)
+     (use-package nerd-icons
+       :ensure t)
 
-    (use-package counsel
-      :after ivy
-      :bind  (("M-x" . counsel-M-x)
-              ("C-x b" . counsel-ibuffer)
-              ("C-x C-f" . counsel-find-file)
-              :map minibuffer-local-map
-              ("C-r" . 'counsel-minibuffer-history))
-      :config
-      (setq ivy-initial-inputs-alist nil))
+     (use-package counsel
+       :after ivy
+       :bind  (("M-x" . counsel-M-x)
+               ("C-x b" . counsel-ibuffer)
+               ("C-x C-f" . counsel-find-file)
+               :map minibuffer-local-map
+               ("C-r" . 'counsel-minibuffer-history))
+       :config
+       (setq ivy-initial-inputs-alist nil))
 
-    ;; use M-o to get further options whilst in mini buffer
+     ;; use M-o to get further options whilst in mini buffer
 
-    (use-package ivy
-      :init (ivy-mode 1)
-      :bind (;;("C-s" . swiper)
-             :map ivy-minibuffer-map
-             ("TAB" . ivy-alt-done)
-             ("C-l" . ivy-alt-done)
-             ("C-j" . ivy-next-line)		 
-             ("C-k" . ivy-previoys-line)
-             :map ivy-switch-buffer-map		 
-             ("C-k" . ivy-previous-line)
-             ("C-l" . ivy-done)
-             ("C-d" . ivy-switch-buffer-kill)
-             :map ivy-reverse-i-search-map
-             ("C-k" . ivy-previous-line)
-             ("C-d" . ivy-reverse-i-search-kill))
-      :custom
-      (setq ivy-count-format "(%d/%d) "))
+     (use-package ivy
+       :init (ivy-mode 1)
+       :bind (;;("C-s" . swiper)
+              :map ivy-minibuffer-map
+              ("TAB" . ivy-alt-done)
+              ("C-l" . ivy-alt-done)
+              ("C-j" . ivy-next-line)		 
+              ("C-k" . ivy-previoys-line)
+              :map ivy-switch-buffer-map		 
+              ("C-k" . ivy-previous-line)
+              ("C-l" . ivy-done)
+              ("C-d" . ivy-switch-buffer-kill)
+              :map ivy-reverse-i-search-map
+              ("C-k" . ivy-previous-line)
+              ("C-d" . ivy-reverse-i-search-kill))
+       :custom
+       (setq ivy-count-format "(%d/%d) "))
 
-    (use-package ivy-rich
-      :after ivy
-      :ensure t
-      :init (ivy-rich-mode 1)
-      :custom
-      (ivy-virtual-abbreciate 'full
-                              ivy-rich-switch-buffer-align-virtual-buffer t
-                              ivy-rich-path-style 'abbrev)
-      :config
-      (ivy-set-display-transformer 'ivy-switch-buffer
-                                   'ivy-rich-switch-buffer-transformer))
+     (use-package ivy-rich
+       :after ivy
+       :ensure t
+       :init (ivy-rich-mode 1)
+       :custom
+       (ivy-virtual-abbreciate 'full
+                               ivy-rich-switch-buffer-align-virtual-buffer t
+                               ivy-rich-path-style 'abbrev)
+       :config
+       (ivy-set-display-transformer 'ivy-switch-buffer
+                                    'ivy-rich-switch-buffer-transformer))
 
-    (use-package doom-modeline
-      :ensure t
-      :init (doom-modeline-mode 1)
-      :custom ((doom-modeline-height 15)))
+     (use-package doom-modeline
+       :ensure t
+       :init (doom-modeline-mode 1)
+       :custom ((doom-modeline-height 15)))
 
-    (use-package toc-org
-      :commands toc-org-enable
-      :init (add-hook 'org-mode-hook 'toc-org-enable))
-
-
-    (add-hook 'org-mode-hook 'org-indent-mode)
-    (use-package org-bullets)
-    (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
-
-    (require 'org-tempo) ; <s TAB to start new source block
-
-    (use-package sudo-edit)
-
-    (use-package eshell-syntax-highlighting
-      :after esh-mode
-      :config
-      (eshell-syntax-highlighting-global-mode +1))
-
-    (use-package vterm
-      :config
-      (setq vterm-max-scrollback 5000))
-
-    (use-package rainbow-mode
-      :hook org-mode prog-mode)
-    (use-package projectile
-      :config (projectile-mode 1)
-      :custom (projectile-completion-system 'ivy)
-      :bind-keymap ("C-c p" . projectile-command-map))
-
-    (use-package dashboard
-      :ensure t
-      :init
-      (setq initial-buffer-choice 'dashboard-open)
-      (setq dashboard-set-heading-icons t)
-      (setq dashboard-banner-logo-title "Welcome")
-      (setq dashboard-startup-banner 'logo) ;; can use string pointing to logo file
-      (setq dashboard-center-content t)
-      (setq dashboard-items '((recents . 5)
-                              (agenda . 5)
-                              (bookmarks . 3)
-                              (projects . 3)
-                              (registers . 3)))
-      ;; (dashboard-modify-heading-icons '((bookmarks . "book"))) ; (recents . "file-text")
-      :config
-      (dashboard-setup-startup-hook))
-
-    (use-package flycheck
-      :ensure t
-      :defer t
-      :diminish
-      :init (global-flycheck-mode))
-
-    ;; (use-package company
-    ;;   :defer 2
-    ;;   :diminish
-    ;;   :custom
-    ;;   (company-begin-commands '(self-insert-command))
-    ;;   (command-idle-delay .1)
-    ;;   (company-minimum-prefix-length 2)
-    ;;   (company-show-numbers t)
-    ;;   (company-tooltips-align-annotations 't)
-    ;;   (global-company-mode t))
-
-    (use-package company
-      :after lsp-mode
-      :hook (lsp-mode . company-mode)
-      :bind
-      (:map company-active-map
-            ("<tab>" . company-complete-selection))
-      (:map lsp-mode-map
-            ("<tab>" . company-indent-or-complete-common))
-      :custom
-      (company-minimum-prefix-length 1)
-      (company-idle-delay 0.0)
-      (company-show-numbers t))
-
-    (use-package company-box
-      :after company
-      :diminish
-      :hook (company-mode . company-box-mode))
-
-    (use-package peep-dired
-      :after dired)
-
-    (use-package which-key
-      :init (which-key-mode)
-      :config (setq which-key-idle-delay 0.3))
-
-    (use-package git-timemachine)
-
-    (use-package magit)
-    ;; use ? to get help commands
-
-    (use-package rainbow-delimiters
-      :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
-             (org-mode . rainbow-delimiters-mode)
-             (prog-mode . rainbow-delimiters-mode)
-             (clojure-mode . rainbow-delimiters-mode)))
-
-    (use-package tldr)
-
-    (use-package helpful
-      :commands (helpful-callable helpful-variable helpful-command helpful-key)
-      :custom
-      (counsel-describe-function-function #'helpful-callable)
-      (counsel-describe-variable-function #'helpful-variable)
-      :bind
-      ([remap describe-function] . counsel-describe-function)
-      ([remap describe-command] . helpful-command)
-      ([remap describe-variable] . counsel-describe-variable)
-      ([remap describe-key] . helpful-key))
-
-    (use-package general)
-    ;; research general for creating a place to set namespaced custom key bindings
-    ;; using prefixes e.g. "C-SPACE"
-    ;; also investigate hydra package
-
-    (use-package lsp-mode
-      :init
-      (setq lsp-keymap-prefix "C-c l")
-      :hook ((python-mode . lsp)
-             (lsp-mode . lsp-enable-which-key-integration))
-      :commands lsp)
-
-    (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
-
-    (use-package lsp-jedi
-      :ensure t)
-
-    (use-package lsp-ui
-      :hook (lsp-mode . lsp-ui-mode)
-      :custom(lsp-ui-doc-position 'bottom))
-
-    (use-package lsp-ivy
-      :after lsp)
-
-    (use-package evil-nerd-commenter
-      :bind ("M-/" . evilnc-comment-or-uncomment-lines))
-
-    (use-package term
-      :commands term
-      :config
-      (setq explicit-shell-file-name "bash") ;; Change this to zsh, etc
-      ;;(setq explicit-zsh-args '())         ;; Use 'explicit-<shell>-args for shell-specific args
-
-      ;; Match the default Bash shell prompt.  Update this if you have a custom prompt
-      (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *"))
-    ;; C-c C-j / C-c C-k to switch between line and care mode
-
-    (use-package eterm-256color
-      :hook (term-mode . eterm-256color-mode))
-
-    (use-package vterm
-      :commands vterm
-      :config
-      (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")  ;; Set this to match your custom shell prompt
-      ;;(setq vterm-shell "zsh")                       ;; Set this to customize the shell to launch
-      (setq vterm-max-scrollback 10000))
-
-    ;; (use-package all-the-icons-dired
-    ;;   :hook (dired-mode . all-the-icons-dired-mode))
-
-    (use-package all-the-icons-dired
-      :hook (dired-mode . (lambda () (all-the-icons-dired-mode t))))
-
-    (use-package dired
-      :ensure nil
-      :commands (dired dired-jump)
-      :bind (("C-x C-j" . dired-jump))
-      :custom ((dired-listing-switches "-agho --group-directories-first")))
+     (use-package toc-org
+       :commands toc-org-enable
+       :init (add-hook 'org-mode-hook 'toc-org-enable))
 
 
-    (use-package dired-open
-      :commands (dired dired-jump)
-      :config
-      ;; Doesn't work as expected!
-      ;;(add-to-list 'dired-open-functions #'dired-open-xdg t)
-      (setq dired-open-extensions '(("png" . "feh")
-                                    ("mkv" . "mpv"))))
+     (add-hook 'org-mode-hook 'org-indent-mode)
+     (use-package org-bullets)
+     (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
 
-    (use-package emacsql)
-    (use-package emacsql-sqlite)
-    (use-package org-roam
-      :ensure t
-      :custom
-      (org-roam-directory (file-truename "~/Documents/org_roam"))
-      (org-roam-completion-everywhere t)
-      (org-roam-capture-templates
-       '(("d" "default" plain
-          "%?"
-          :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
-          :unnarrowed t)
-         ("l" "programming language" plain
-          "* Characteristics\n\n- Family: %?\n- Inspired by: \n\n* Reference:\n\n"
-          :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
-          :unnarrowed t)
-         ("b" "book notes" plain
-          "\n* Source\n\nAuthor: %^{Author}\nTitle: ${title}\nYear: %^{Year}\n\n* Summary\n\n%?"
-          :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
-          :unnarrowed t)
-         ("p" "project" plain "* Goals\n\n%?\n\n* Tasks\n\n** TODO Add initial tasks\n\n* Dates\n\n"
-          :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+filetags: Project")
-          :unnarrowed t)
-         )
-       )
-      :bind (("C-c n l" . org-roam-buffer-toggle)
-             ("C-c n f" . org-roam-node-find)
-             ("C-c n g" . org-roam-graph)
-             ("C-c n i" . org-roam-node-insert)
-             ("C-c n c" . org-roam-capture)
-             ;; Dailies
-             ("C-c n j" . org-roam-dailies-capture-today)
-             :map org-mode-map
-             ("C-M-i" . completion-at-point))
-      :config
-      ;; If you're using a vertical completion framework, you might want a more informative completion interface
-      (setq org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
-      (org-roam-db-autosync-mode)
-      ;; If using org-roam-protocol
-      (require 'org-roam-protocol))
+     (require 'org-tempo) ; <s TAB to start new source block
 
+     (use-package sudo-edit)
+
+     (use-package eshell-syntax-highlighting
+       :after esh-mode
+       :config
+       (eshell-syntax-highlighting-global-mode +1))
+
+     (use-package vterm
+       :config
+       (setq vterm-max-scrollback 5000))
+
+     (use-package rainbow-mode
+       :hook org-mode prog-mode)
+     (use-package projectile
+       :config (projectile-mode 1)
+       :custom (projectile-completion-system 'ivy)
+       :bind-keymap ("C-c p" . projectile-command-map))
+
+     (use-package dashboard
+       :ensure t
+       :init
+       (setq initial-buffer-choice 'dashboard-open)
+       (setq dashboard-set-heading-icons t)
+       (setq dashboard-banner-logo-title "Welcome")
+       (setq dashboard-startup-banner 'logo) ;; can use string pointing to logo file
+       (setq dashboard-center-content t)
+       (setq dashboard-items '((recents . 5)
+                               (agenda . 5)
+                               (bookmarks . 3)
+                               (projects . 3)
+                               (registers . 3)))
+       ;; (dashboard-modify-heading-icons '((bookmarks . "book"))) ; (recents . "file-text")
+       :config
+       (dashboard-setup-startup-hook))
+
+     (use-package flycheck
+       :ensure t
+       :defer t
+       :diminish
+       :init (global-flycheck-mode))
+
+     ;; (use-package company
+     ;;   :defer 2
+     ;;   :diminish
+     ;;   :custom
+     ;;   (company-begin-commands '(self-insert-command))
+     ;;   (command-idle-delay .1)
+     ;;   (company-minimum-prefix-length 2)
+     ;;   (company-show-numbers t)
+     ;;   (company-tooltips-align-annotations 't)
+     ;;   (global-company-mode t))
+
+     (use-package company
+       :after lsp-mode
+       :hook (lsp-mode . company-mode)
+       :bind
+       (:map company-active-map
+             ("<tab>" . company-complete-selection))
+       (:map lsp-mode-map
+             ("<tab>" . company-indent-or-complete-common))
+       :custom
+       (company-minimum-prefix-length 1)
+       (company-idle-delay 0.0)
+       (company-show-numbers t))
+
+     (use-package company-box
+       :after company
+       :diminish
+       :hook (company-mode . company-box-mode))
+
+     (use-package peep-dired
+       :after dired)
+
+     (use-package which-key
+       :init (which-key-mode)
+       :config (setq which-key-idle-delay 0.3))
+
+     (use-package git-timemachine)
+
+     (use-package magit)
+     ;; use ? to get help commands
+
+     (use-package rainbow-delimiters
+       :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
+              (org-mode . rainbow-delimiters-mode)
+              (prog-mode . rainbow-delimiters-mode)
+              (clojure-mode . rainbow-delimiters-mode)))
+
+     (use-package tldr)
+
+     (use-package helpful
+       :commands (helpful-callable helpful-variable helpful-command helpful-key)
+       :custom
+       (counsel-describe-function-function #'helpful-callable)
+       (counsel-describe-variable-function #'helpful-variable)
+       :bind
+       ([remap describe-function] . counsel-describe-function)
+       ([remap describe-command] . helpful-command)
+       ([remap describe-variable] . counsel-describe-variable)
+       ([remap describe-key] . helpful-key))
+
+     (use-package general)
+     ;; research general for creating a place to set namespaced custom key bindings
+     ;; using prefixes e.g. "C-SPACE"
+     ;; also investigate hydra package
+
+     (use-package lsp-mode
+       :init
+       (setq lsp-keymap-prefix "C-c l")
+       :hook ((python-mode . lsp)
+              (lsp-mode . lsp-enable-which-key-integration))
+       :commands lsp)
+
+     (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+
+     (use-package lsp-jedi
+       :ensure t)
+
+     (use-package lsp-ui
+       :hook (lsp-mode . lsp-ui-mode)
+       :custom(lsp-ui-doc-position 'bottom))
+
+     (use-package lsp-ivy
+       :after lsp)
+
+     (use-package evil-nerd-commenter
+       :bind ("M-/" . evilnc-comment-or-uncomment-lines))
+
+     (use-package term
+       :commands term
+       :config
+       (setq explicit-shell-file-name "bash") ;; Change this to zsh, etc
+       ;;(setq explicit-zsh-args '())         ;; Use 'explicit-<shell>-args for shell-specific args
+
+       ;; Match the default Bash shell prompt.  Update this if you have a custom prompt
+       (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *"))
+     ;; C-c C-j / C-c C-k to switch between line and care mode
+
+     (use-package eterm-256color
+       :hook (term-mode . eterm-256color-mode))
+
+     (use-package vterm
+       :commands vterm
+       :config
+       (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")  ;; Set this to match your custom shell prompt
+       ;;(setq vterm-shell "zsh")                       ;; Set this to customize the shell to launch
+       (setq vterm-max-scrollback 10000))
+
+     ;; (use-package all-the-icons-dired
+     ;;   :hook (dired-mode . all-the-icons-dired-mode))
+
+     (use-package all-the-icons-dired
+       :hook (dired-mode . (lambda () (all-the-icons-dired-mode t))))
+
+     (use-package dired
+       :ensure nil
+       :commands (dired dired-jump)
+       :bind (("C-x C-j" . dired-jump))
+       :custom ((dired-listing-switches "-agho --group-directories-first")))
+
+
+     (use-package dired-open
+       :commands (dired dired-jump)
+       :config
+       ;; Doesn't work as expected!
+       ;;(add-to-list 'dired-open-functions #'dired-open-xdg t)
+       (setq dired-open-extensions '(("png" . "feh")
+                                     ("mkv" . "mpv"))))
+
+     (use-package emacsql)
+
+     (use-package emacsql-sqlite)
+
+     (use-package org-roam
+       :ensure t
+       :custom
+       (org-roam-directory (file-truename "~/Documents/org_roam"))
+       (org-roam-completion-everywhere t)
+       (org-roam-capture-templates
+        '(("d" "default" plain
+           "%?"
+           :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+           :unnarrowed t)
+          ("l" "programming language" plain
+           "* Characteristics\n\n- Family: %?\n- Inspired by: \n\n* Reference:\n\n"
+           :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+           :unnarrowed t)
+          ("b" "book notes" plain
+           (file "~/Documents/roam-templates/book_notes.org")
+           :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+filetags: ${filetags}")
+           :unnarrowed t)
+          ("p" "project" plain "* Goals\n\n%?\n\n* Tasks\n\n** TODO Add initial tasks\n\n* Dates\n\n"
+           :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+filetags: Project")
+           :unnarrowed t)
+          )
+        )
+       :bind (("C-c n l" . org-roam-buffer-toggle)
+              ("C-c n f" . org-roam-node-find)
+              ("C-c n g" . org-roam-graph)
+              ("C-c n i" . org-roam-node-insert)
+              ("C-c n c" . org-roam-capture)
+              ;; Dailies
+              ;; ("C-c n j" . org-roam-dailies-capture-today)
+              :map org-mode-map
+              ("C-M-i" . completion-at-point)
+              :map org-roam-dailies-map
+              ("Y" . org-roam-dailies-capture-yesterday)
+              ("T" . org-roam-dailies-capture-tomorrow)
+              )
+       :bind-keymap
+       ("C-c n d" . org-roam-dailies-map)
+       :config
+       ;; If you're using a vertical completion framework, you might want a more informative completion interface
+       (setq org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
+       (org-roam-db-autosync-mode)
+       ;; If using org-roam-protocol
+       (require 'org-roam-protocol)
+       (require 'org-roam-dailies))
+
+     (setq org-agenda-files (list "/home/garyl/Documents/agenda"))
+
+     (use-package rg)
+
+     (use-package elmacro)
+
+     (use-package org-pomodoro
+       :bind (("C-c m p" . org-pomodoro))
+       :config
+       (setq
+        alert-user-configuration (quote ((((:category . "org-pomodoro")) libnotify nil)))
+        ))
 #+end_src
 
 * themes
@@ -478,45 +507,83 @@
                  (load-theme 'ample-light t t)
                  (enable-theme 'ample))
     :defer t
-    :ensure t)  
+    :ensure t)
 #+end_src
 
 * custom functions
 #+begin_src emacs-lisp
   ;; custom functions
   (defun count-words-buffer ()
-	"Count the number of words in the current buffer;
-  print a message in the minibuffer with the result."
-	(interactive)
-	(let ((count 0))
-	  (save-excursion
-		(goto-char (point-min))
-		(while (< (point) (point-max))
-		  (forward-word 1)
-		  (setq count (1+ count)))
-		(message "buffer conatains %d words." count))))
+    "Count the number of words in the current buffer;
+    print a message in the minibuffer with the result."
+    (interactive)
+    (let ((count 0))
+      (save-excursion
+        (goto-char (point-min))
+        (while (< (point) (point-max))
+          (forward-word 1)
+          (setq count (1+ count)))
+        (message "buffer conatains %d words." count))))
 
   (defun goto-percent (percent)
-	(interactive "nGoto percent: ")
-	(let* ((size (point-max))
-		   (charpos (/ (* size percent) 100)))
-	  (goto-char charpos)))
+    (interactive "nGoto percent: ")
+    (let* ((size (point-max))
+           (charpos (/ (* size percent) 100)))
+      (goto-char charpos)))
 
   (defun pluralize (word count &optional plural)
-	(if (= count 1)
-		word
-	  (if (null plural)
-		  (concat word "s")
-		plural)))
+    (if (= count 1)
+        word
+      (if (null plural)p
+        (concat word "s")
+        plural)))
 
   (defun how-many (count)
-	(cond ((zerop count) "no")
-		  ((= count 1) "one")
-		  ((= count 2) "two")
-		  (t "many")))
+    (cond ((zerop count) "no")
+          ((= count 1) "one")
+          ((= count 2) "two")
+          (t "many")))
 
   (defun report-change-count (count)
-	(message "Made %s %s" (how-many count) (pluralize "change" count)))  
+    (message "Made %s %s" (how-many count) (pluralize "change" count)))
+
+  (defun eval-sexp-print-same-line ()
+    (interactive)
+    (org-beginning-of-line 1)
+    (org-end-of-line 1)
+    (set-mark-command nil)
+    (isearch-backward nil 1)
+    (isearch-printing-char 41 1)
+    (isearch-exit)
+    (org-delete-backward-char 1)
+    (org-self-insert-command 1)
+    (universal-argument)
+    (eval-last-sexp`(4)))
+
+
+  (defun org-mode-<>-syntax-fix (start end)
+    "Change syntax of characters ?< and ?> to symbol within source code blocks."
+    (let ((case-fold-search t))
+      (when (eq major-mode 'org-mode)
+        (save-excursion
+          (goto-char start)
+          (while (re-search-forward "<\\|>" end t)
+            (when (save-excursion
+                    (and
+                     (re-search-backward "[[:space:]]*#\\+\\(begin\\|end\\)_src\\_>" nil t)
+                     (string-equal (downcase (match-string 1)) "begin")))
+              ;; This is a < or > in an org-src block
+              (put-text-property (point) (1- (point))
+                                 'syntax-table (string-to-syntax "_"))))))))
+
+  (defun org-setup-<>-syntax-fix ()
+    "Setup for characters ?< and ?> in source code blocks.
+  Add this function to `org-mode-hook'."
+    (make-local-variable 'syntax-propertize-function)
+    (setq syntax-propertize-function 'org-mode-<>-syntax-fix)
+    (syntax-propertize (point-max)))
+
+  (add-hook 'org-mode-hook #'org-setup-<>-syntax-fix)
 #+end_src
 * org babel
 #+begin_src emacs-lisp
@@ -567,6 +634,7 @@ shift-arrows = cycle states
     "c" 'org-capture
     "s" my-search-keys
     "t" 'test-command ;; just to illustrate calling custom functions
+    "C-e" 'eval-sexp-print-same-line
     )
 
   (keymap-set global-map "C-c m" my-keys) ;; create new prefixed global map
